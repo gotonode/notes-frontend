@@ -4,99 +4,87 @@ import axios from 'axios'
 
 class App extends React.Component {
 
-        constructor(props) {
-            super(props)
-            this.state = {
-                notes: props.notes,
-                showAll: true, // We show all notes, important and not important.
-                newNote: ''
-            }
+    constructor(props) {
+        super(props)
+        this.state = {
+            notes: [],
+            showAll: true, // We show all notes, important and not important.
+            newNote: ''
+        }
+        console.log("Constructor called.")
+    }
+
+    eventHandler = (response) => {
+        console.log("Promise fulfilled.")
+        this.setState({ notes: response.data })
+    }
+
+    componentDidMount() {
+        console.log("Mount.")
+        const promise = axios.get("http://192.168.100.208:3001/notes")
+        promise.then(this.eventHandler)
+    }
+
+    addNote = (event) => {
+        // Prevent the page from reloading. This is a SPA, we don't need page reloads.
+        event.preventDefault()
+
+        const noteObject = {
+            id: this.state.notes.length + 1,
+            content: this.state.newNote,
+            date: new Date().toISOString(),
+            important: Math.random() > 0.5
         }
 
-        addNote = (event) => {
-            // Prevent the page from reloading. This is a SPA, we don't need page reloads.
-            event.preventDefault()
+        const notes = this.state.notes.concat(noteObject)
 
-            const noteObject = {
-                id: this.state.notes.length + 1,
-                content: this.state.newNote,
-                date: new Date().toISOString(),
-                important: Math.random() > 0.5
-            }
+        this.setState({
+            notes: notes,
+            newNote: ''
+        })
+    }
 
-            const notes = this.state.notes.concat(noteObject)
+    test = (event) => {
+        this.setState({
+            newNote: "haa"
+        })
+    }
 
-            this.setState({
-                notes: notes,
-                newNote: ''
-            })
-        }
+    toggleVisible = () => {
+        this.setState({
+            showAll: !this.state.showAll
+        })
+    }
 
-        test = (event) => {
-            this.setState({
-                newNote: "haa"
-            })
-        }
+    handleNoteChange = (event) => {
+        console.log(event.target.value)
+        this.setState({
+            newNote: event.target.value
+        })
+    }
 
-        toggleVisible = () => {
-            this.setState({
-                showAll: !this.state.showAll
-            })
-        }
+    render() {
 
-        handleNoteChange = (event) => {
-            console.log(event.target.value)
-            this.setState({
-                newNote: event.target.value
-            })
-        }
+        const notesCollection = this.state.showAll ? this.state.notes : this.state.notes.filter(note => note.important === true)
 
-        render() {
+        const rows = () => notesCollection.map(note => < Note key={note.id} note={note} />)
 
-            const notesCollection = this.state.showAll ? this.state.notes : this.state.notes.filter(note => note.important === true)
+        const label = this.state.showAll === true ? "only important notes" : "all notes"
 
-            const rows = () => notesCollection.map(note => < Note key = {
-                    note.id
-                }
-                note = {
-                    note
-                }
-                />)
+        return (
+            <div>
+                <h1>Notes</h1>
+                <ul>
+                    {rows()}
+                </ul>
+                <form onSubmit={this.addNote} onMouseOver={this.test}>
+                    <input value={this.state.newNote} onChange={this.handleNoteChange} />
+                    <button type="submit" class="btn btn-primary">Save note</button>
+                    <button onClick={this.toggleVisible} class="btn btn-secondary">Show {label}</button>
+                </form>
+            </div>
+        )
+    }
+}
 
-                const label = this.state.showAll === true ? "only important notes" : "all notes"
-
-                return ( <
-                    div >
-                    <
-                    h1 > Notes < /h1> <
-                    ul > {
-                        rows()
-                    } <
-                    /ul> <
-                    form onSubmit = {
-                        this.addNote
-                    }
-                    onMouseOver = {
-                        this.test
-                    } >
-                    <
-                    input value = {
-                        this.state.newNote
-                    }
-                    onChange = {
-                        this.handleNoteChange
-                    }
-                    /> <
-                    button type = "submit" > Save note < /button> <
-                    button onClick = {
-                        this.toggleVisible
-                    } > Show {
-                        label
-                    } < /button> < /
-                    form > <
-                    /div>
-                )
-            }
-        }
-
-        export default App
+export default App
