@@ -30,25 +30,17 @@ class App extends React.Component {
         event.preventDefault()
 
         const noteObject = {
-            id: this.state.notes.length + 1,
             content: this.state.newNote,
             date: new Date().toISOString(),
             important: Math.random() > 0.5
         }
 
-        const notes = this.state.notes.concat(noteObject)
-
-        this.setState({
-            notes: notes,
-            newNote: ''
+        axios.post("http://192.168.100.208:3001/notes", noteObject).then(response => {
+            console.log(response)
+            this.setState({ notes: this.state.notes.concat(response.data), newNote: "" })
         })
     }
 
-    test = (event) => {
-        this.setState({
-            newNote: "haa"
-        })
-    }
 
     toggleVisible = () => {
         this.setState({
@@ -56,12 +48,7 @@ class App extends React.Component {
         })
     }
 
-    handleNoteChange = (event) => {
-        console.log(event.target.value)
-        this.setState({
-            newNote: event.target.value
-        })
-    }
+    handleNoteChange = (event) => this.setState({ newNote: event.target.value })
 
     render() {
 
@@ -77,10 +64,10 @@ class App extends React.Component {
                 <ul>
                     {rows()}
                 </ul>
-                <form onSubmit={this.addNote} onMouseOver={this.test}>
+                <form onSubmit={this.addNote}>
                     <input value={this.state.newNote} onChange={this.handleNoteChange} />
-                    <button type="submit" class="btn btn-primary">Save note</button>
-                    <button onClick={this.toggleVisible} class="btn btn-secondary">Show {label}</button>
+                    <button type="submit" className="btn btn-primary">Save note</button>
+                    <button onClick={this.toggleVisible} className="btn btn-secondary">Show {label}</button>
                 </form>
             </div>
         )
