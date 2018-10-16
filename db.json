@@ -1,0 +1,21 @@
+{
+	"notes": [{
+			"id": 1,
+			"content": "first",
+			"date": "2018",
+			"important": true
+		},
+		{
+			"id": 2,
+			"content": "second",
+			"date": "2018",
+			"important": true
+		},
+		{
+			"id": 3,
+			"content": "third",
+			"date": "2018",
+			"important": false
+		}
+	]
+}
