@@ -54,7 +54,7 @@ class App extends React.Component {
 
         const notesCollection = this.state.showAll ? this.state.notes : this.state.notes.filter(note => note.important === true)
 
-        const rows = () => notesCollection.map(note => < Note key={note.id} note={note} />)
+        const rows = () => notesCollection.map(note => <Note key={note.id} note={note} />)
 
         const label = this.state.showAll === true ? "only important notes" : "all notes"
 
