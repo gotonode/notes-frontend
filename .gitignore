@@ -2,6 +2,7 @@
 
 # Project
 .vscode/
+db-*.json
 
 # dependencies
 /node_modules
