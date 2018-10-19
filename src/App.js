@@ -1,6 +1,19 @@
 import React from 'react'
 import Note from './components/Note'
-import axios from 'axios'
+import noteService from './services/notes'
+
+const errorDelay = 2000
+
+const Notification = ({ message }) => {
+    if (message === null || message.length === 0) {
+        return null
+    }
+    return (
+        <div id="error">
+            {message}
+        </div>
+    )
+}
 
 class App extends React.Component {
 
@@ -9,19 +22,20 @@ class App extends React.Component {
         this.state = {
             notes: [],
             showAll: true, // We show all notes, important and not important.
-            newNote: ''
+            newNote: "",
+            errorMessage: null
         }
         console.log("Constructor called.")
     }
 
-    eventHandler = (response) => {
+    eventHandler = (notes) => {
         console.log("Promise fulfilled.")
-        this.setState({ notes: response.data })
+        this.setState({ notes })
     }
 
     componentDidMount() {
         console.log("Mount.")
-        const promise = axios.get("http://192.168.100.208:3001/notes")
+        const promise = noteService.getAll()
         promise.then(this.eventHandler)
     }
 
@@ -29,18 +43,21 @@ class App extends React.Component {
         // Prevent the page from reloading. This is a SPA, we don't need page reloads.
         event.preventDefault()
 
+        if (this.state.newNote.trim().length === 0) {
+            alert("Please write something.")
+            return
+        }
+
         const noteObject = {
             content: this.state.newNote,
             date: new Date().toISOString(),
             important: Math.random() > 0.5
         }
 
-        axios.post("http://192.168.100.208:3001/notes", noteObject).then(response => {
-            console.log(response)
-            this.setState({ notes: this.state.notes.concat(response.data), newNote: "" })
+        noteService.create(noteObject).then(newNote => {
+            this.setState({ notes: this.state.notes.concat(newNote), newNote: "" })
         })
     }
-
 
     toggleVisible = () => {
         this.setState({
@@ -50,17 +67,43 @@ class App extends React.Component {
 
     handleNoteChange = (event) => this.setState({ newNote: event.target.value })
 
+    toggleImportanceOf = (id) => {
+        return () => {
+
+            const note = this.state.notes.find(n => n.id === id)
+            const changedNote = { ...note, important: !note.important }
+
+            console.log(`Need to toggle importance of note ${note.id}.`)
+
+            noteService.update(id, changedNote)
+                .then(changedNote => {
+                    const notes = this.state.notes.filter(n => n.id !== id)
+                    this.setState({ notes: notes.concat(changedNote) })
+                }).catch(error => {
+                    this.setState({
+                        notes: this.state.notes.filter(n => n.id !== id),
+                        errorMessage: `Note ${id} has already been deleted from the server.`
+                    })
+                    setTimeout(() => {
+                        this.setState({ errorMessage: null })
+                    }, errorDelay)
+                })
+        }
+    }
+
+
     render() {
 
         const notesCollection = this.state.showAll ? this.state.notes : this.state.notes.filter(note => note.important === true)
 
-        const rows = () => notesCollection.map(note => <Note key={note.id} note={note} />)
+        const rows = () => notesCollection.map(note => <Note key={note.id} note={note} toggleImportance={this.toggleImportanceOf(note.id)} />)
 
         const label = this.state.showAll === true ? "only important notes" : "all notes"
 
         return (
             <div>
                 <h1>Notes</h1>
+                <Notification message={this.state.errorMessage} />
                 <ul>
                     {rows()}
                 </ul>
