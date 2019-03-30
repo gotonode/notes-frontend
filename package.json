@@ -27,7 +27,7 @@
 		"not op_mini all"
 	],
 	"devDependencies": {
-		"eslint": "5.8.0",
+		"eslint": "5.16.0",
 		"jshint": "2.9.6"
 	},
 	"proxy": "http://localhost:3000"
